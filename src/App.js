@@ -1,32 +1,44 @@
-import {useState, useEffect} from "react";
+import {useState, useEffect, use} from "react";
 
+// api.coinpaprika.com/v1/tickers
 function App() {
-    const [toDo, setToDo] = useState("");
-    const [toDos, setToDos] = useState([]);
-    const onChange = (event) => {
-        setToDo(event.target.value)
+    const [loading, setLoading] = useState(true);
+    const [coins, setCoins] = useState([]);
+    useEffect(() => {
+        fetch("https://api.coinpaprika.com/v1/tickers")
+            .then(response => response.json())
+            .then((json) => {
+                setCoins(json);
+                setLoading(false);
+                if(json.length > 0) setSelectCoin(json[0]);
+            });
+
+    }, []);
+    const [selectCoin, setSelectCoin] = useState(null);
+    const onSelect = (event) => {
+        setSelectCoin(JSON.parse(event.target.value));
     }
-    const onSubmit = (event) => {
-        event.preventDefault();
-        if(toDo === "") {
-            return;
-        }
-        setToDos(currentArray => [toDo, ...currentArray]);
-        setToDo("");
-        console.log(toDos)
+
+    const [money, setMoney] = useState(0);
+    const onMoney = (arg) => {
+        setMoney(arg.target.value)
     }
     return (
         <div>
-            <h1>My To Dos ({toDos.length})</h1>
-            <form onSubmit={onSubmit}>
-                <input value={toDo} onChange={onChange} type="text" placeholder="Write your to do" />
-                <button>Add To Do</button>
-            </form>
-            <hr/>
-            {toDos.map((item, index) => <li key={index}>{item.toUpperCase()}</li>)}
+            <h1>The Coins! {loading ? null : `(${coins.length})`}</h1>
+            {loading  ? <strong>Loading...</strong> :
+                <select onChange={onSelect}>
+                    {coins.map((coin) =>
+                        <option key={coin.id} value={JSON.stringify(coin)}>
+                            {coin.name} ({coin.symbol}) : ${coin.quotes.USD.price} USD
+                        </option>)
+                    }
+                </select>
+            }
+            <input onChange={onMoney} type="number" placeholder="How much having money ?"/> $
+            {selectCoin ? <p>당신이 가지고 있는 돈으로는 {money / selectCoin.quotes.USD.price}.{selectCoin.symbol}을 얻을 수 있습니다.</p> : null}
         </div>
     );
-
 }
 
 export default App;
