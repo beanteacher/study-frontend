@@ -12,14 +12,17 @@ const Container = styled.div<CircleProps>`
 interface CircleProps {
     bgColor: string;
     borderColor?: string;
-    text? : string
 }
 
-function Circle({bgColor, borderColor, text = "default text"} : CircleProps) {
-
+function Circle({bgColor, borderColor} : CircleProps) {
+    const[value, setValue] = useState<number|string>(1);
+    const onClick = () => {
+        setValue("hello");
+    }
     return (
         <Container bgColor={bgColor} borderColor={borderColor ?? bgColor}>
-            {text}
+            {value}
+            {<button onClick={onClick}>Change</button>}
         </Container>
     )
 }
