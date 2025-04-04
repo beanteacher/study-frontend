@@ -3,6 +3,8 @@ import {Link, Route, Switch, useLocation, useParams, useRouteMatch} from "react-
 import styled from "styled-components";
 import Price from "./Price";
 import Chart from "./Chart";
+import {fetchCoin, fetchCoinPrice} from "../api";
+import {useQuery} from "react-query";
 interface CoinProps {
     coinId : string;
 }
@@ -126,24 +128,15 @@ const Tab = styled.span<{ isActive: boolean }>`
 
 function Coin() {
     const {coinId} = useParams<CoinProps>();
-    const [loading, setLoading] = useState(true);
     const {state} = useLocation<CoinState>();
-    const [coin, setCoin] = useState<Coin>();
-    const [coinPrice, setCoinPrice] = useState<CoinPrice>();
     const priceMatch = useRouteMatch("/:coinId/price");
     const chartMatch = useRouteMatch("/:coinId/chart");
 
-    useEffect(() => {
-        (async() => {
-            const coinJson = await (await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)).json();
-            const coinPriceJson = await (await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)).json();
-            console.log(coinJson);
-            console.log(coinPriceJson);
-            setCoin(coinJson);
-            setCoinPrice(coinPriceJson);
-            setLoading(false);
-        })();
-    }, [coinId]);
+    const {isLoading: coinLoading, data : coin} =
+        useQuery<Coin>(["coin", coinId], () => fetchCoin(coinId)); // 파라미터로 같은 값을 넘겨도 react query 캐시 시스템에 key를 저장할 땐 고유한 값이여하므로 따로 key 값을 지정해줬다.
+    const {isLoading: coinPriceLoading, data : coinPrice} =
+        useQuery<CoinPrice>(["coinPrice", coinId], () => fetchCoinPrice(coinId));
+    const loading = coinLoading || coinPriceLoading;
     return (
         <Container>
             <Header>
@@ -160,7 +153,7 @@ function Coin() {
                         </OverviewItem>
                         <OverviewItem>
                             <span>Symbol:</span>
-                            <span>${coin?.symbol}</span>
+                            <span>{coin?.symbol}</span>
                         </OverviewItem>
                         <OverviewItem>
                             <span>Open Source:</span>
@@ -191,7 +184,7 @@ function Coin() {
                             <Price />
                         </Route>
                         <Route path={`/:coinId/chart`}>
-                            <Chart />
+                            <Chart coinId={coinId}/>
                         </Route>
                     </Switch>
                 </>
