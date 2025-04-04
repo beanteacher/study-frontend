@@ -5,6 +5,8 @@ import Price from "./Price";
 import Chart from "./Chart";
 import {fetchCoin, fetchCoinPrice} from "../api";
 import {useQuery} from "react-query";
+import {Helmet} from "react-helmet";
+
 interface CoinProps {
     coinId : string;
 }
@@ -135,10 +137,18 @@ function Coin() {
     const {isLoading: coinLoading, data : coin} =
         useQuery<Coin>(["coin", coinId], () => fetchCoin(coinId)); // 파라미터로 같은 값을 넘겨도 react query 캐시 시스템에 key를 저장할 땐 고유한 값이여하므로 따로 key 값을 지정해줬다.
     const {isLoading: coinPriceLoading, data : coinPrice} =
-        useQuery<CoinPrice>(["coinPrice", coinId], () => fetchCoinPrice(coinId));
+        useQuery<CoinPrice>(["coinPrice", coinId], () => fetchCoinPrice(coinId),
+            {
+                refetchInterval: 5000
+            });
     const loading = coinLoading || coinPriceLoading;
     return (
         <Container>
+            <Helmet>
+                <title>
+                    {state?.name ? state.name : loading ? "Loading..." : coin?.name}
+                </title>
+            </Helmet>
             <Header>
                 <Title>{state?.name ? state.name : loading ? "Loading..." : coin?.name}</Title>
             </Header>
@@ -156,8 +166,8 @@ function Coin() {
                             <span>{coin?.symbol}</span>
                         </OverviewItem>
                         <OverviewItem>
-                            <span>Open Source:</span>
-                            <span>{coin?.open_source ? "Yes" : "No"}</span>
+                            <span>Price:</span>
+                            <span>{coinPrice?.quotes.USD.price.toFixed(5)}</span>
                         </OverviewItem>
                     </Overview>
                     <Description>{coin?.description}</Description>
