@@ -13,6 +13,12 @@ function Router() {
             <Route path="/">
                 <Coins/>
             </Route>
+            {/*<Route path="/:coinId/price">
+                <Coins/>
+            </Route>
+            <Route path="/:coinId/chart">
+                <Coins/>
+            </Route>*/}
         </Switch>
     </BrowserRouter>
     )
